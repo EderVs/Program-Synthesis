@@ -123,6 +123,28 @@ function sust(state, vr, val) {
         return "sust(" + state.toString() + ", [" + vr.toString() + " := " + val.toString() + "])";
       }
     }
+    /*
+    if (command.type == VR && command.name == vr) {
+        return val;
+    }
+    if (command.type == PLUS || command.type == TIMES || command.type == LT || command.type == AND) {
+        left = sust(command.left, vr, val);
+        right = sust(command.right, vr, val);
+        if (command.type == PLUS)
+          return plus(left, right);
+        if (command.type == TIMES)
+          return times(left, right);
+        if (command.type == LT)
+          return lt(left, right);
+        if (command.type == AND)
+          return and(left, right);
+    }
+    if (command.type == NOT) {
+        return not(sust(command.left, vr, val));
+    }
+
+    return command;
+    */
 }
 
 function or(x, y) {
@@ -184,8 +206,9 @@ function block(slist) {
 }
 
 //The stuff you have to implement.
-// Returns a list of variables
+// Returns a list of variables that changes during the while
 function getVars(command) {
+    /*
     if (command.type == VR) {
         return [command];
     }
@@ -196,6 +219,24 @@ function getVars(command) {
     }
     if (command.type == NOT) {
         return getVars(command.left);
+    }
+    */
+    if (command.type == ASSGN) {
+        return command.vr;
+    }
+    if (command.type == SEQ) {
+        fst = getVars(command.fst);
+        snd = getVars(command.snd);
+        return [...new Set([...fst, ...snd])];
+    }
+    if (command.type == IFTE) {
+        tcase = getVars(command.tcase);
+        fcase = getVars(command.fcase);
+        return [...new Set([...tcase, ...fcase])];
+    }
+    if (command.type == WHLE) {
+        body = getVars(command.body);
+        return body;
     }
 
     return [];
@@ -227,7 +268,7 @@ function vc(command, B) {
         // This is the while invariant
         var invariant_while = invariant(invariant_index);
         invariant_index += 1;
-        var vrs = getVars(command.cond);
+        var vrs = getVars(command.body);
         var last = invariant_while;
         // We add all the invariants with the vars in the condition
         for (var i = 0; i < vrs.length; i++) {
