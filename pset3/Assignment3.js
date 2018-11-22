@@ -118,19 +118,19 @@ function getExpProb(table, exp, pos) {
 }
 
 
-function getActualTable(exp, item1, item2, item3, prob) {
-    var actual_prob = getExpProb(item1, exp, 0);
+function getActualTable(table, item1, item2, item3, prob) {
+    var actual_prob = getExpProb(item1, table, 0);
     if (item2 != null) {
-        actual_prob *= getExpProb(item2, exp, 1);
+        actual_prob *= getExpProb(item2, table, 1);
     }
     if (item3 != null) {
-        actual_prob *= getExpProb(item3, exp, 1);
+        actual_prob *= getExpProb(item3, table, 2);
     }
-    var probs = getAllProbs(exp, prob);
+    var probs = getAllProbs(table, prob);
     for (var i = 0; i < 13; i++) {
         probs[i] *= actual_prob;
     }
-    return assignProbs(exp, probs);
+    return assignProbs(table, probs);
 }
 
 function possible(table) {
@@ -172,8 +172,10 @@ function grow(intOps, boolOps, vars, consts, tables, inputoutputs, prob) {
                 tables.forEach(function(item2, index2) {
                     new_exp = lt(item1.exp, item2.exp);
                     actual_table = getActualTable(new_exp, item1, item2, null, prob);
-                    actual_level.push(actual_table);
-                    checkBest(table, inputoutputs);
+                    if (possible(actual_table)) {    
+                        actual_level.push(actual_table);
+                        checkBest(table, inputoutputs);
+                    }
                 });
             });
         } else if (item == AND) {
@@ -226,7 +228,7 @@ function grow(intOps, boolOps, vars, consts, tables, inputoutputs, prob) {
                 tables.forEach(function(item2, index2) {
                     tables.forEach(function(item3, index3) {
                         new_exp = ite(item1.exp, item2.exp, item3.exp);
-                        actual_table = getActualTable(new_exp, item1, item2, null, prob);
+                        actual_table = getActualTable(new_exp, item1, item2, item3, prob);
                         if (possible(actual_table)) {    
                             actual_level.push(actual_table);
                             checkBest(actual_table, inputoutputs);
@@ -286,8 +288,10 @@ function bottomUp(globalBnd, intOps, boolOps, vars, consts, inputoutputs, prob) 
     tables.push(actual_table);
     checkBest(actual_table, inputoutputs);
     // While true
+	console.log("Working");
     for (var i = 0; i < globalBnd; i++) {
         // grow list
+        console.log("Bound: " + i.toString());
         newLevel = grow(intOps, boolOps, vars, consts, tables, inputoutputs, prob);
         tables = tables.concat(newLevel);
         tables = elimEquivalents(tables, inputoutputs);
@@ -342,7 +346,7 @@ function run2(){
 					return unif([NUM, VR, PLUS, TIMES, ITE], child);
 	        	break;
 	        case null:
-	            return 0.2;
+	            return 0.11;
 		}
 	}
 	
